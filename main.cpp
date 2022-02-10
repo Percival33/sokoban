@@ -14,6 +14,6 @@ extern "C" {
 extern "C"
 #endif
 int main(int argc, char **argv) {
-   startProgram();
+   return startProgram();
 };
 

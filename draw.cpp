@@ -3,6 +3,7 @@
 //
 
 #include "draw.h"
+#include "consts.h"
 
 // draw a text txt on surface screen, starting from the point (x, y)
 // charset is a 128x128 bitmap containing character images
@@ -69,3 +70,37 @@ void drawRectangle(SDL_Surface *screen, int x, int y, int l, int k,
     for(i = y + 1; i < y + k - 1; i++)
         drawLine(screen, x + 1, i, l - 2, 1, 0, fillColor);
 };
+
+void drawBoard(const graphics_t *vfx, const player_t *player, const int **board, int rows, int cols) {
+    int topLeftX = (SCREEN_WIDTH - cols*PLAYER_WIDTH)/2;
+    int topLeftY = (SCREEN_HEIGHT - rows*PLAYER_HEIGHT)/2;
+    int newX;
+    int newY;
+
+    for(int row = 0; row < rows; row++) {
+        for(int col = 0; col < cols; col++) {
+            newX = topLeftX + col * PLAYER_WIDTH;
+            newY = topLeftY + row * PLAYER_HEIGHT;
+
+            drawSurface(vfx->screen, vfx->field.empty, newX, newY);
+
+            switch(board[row][col]) {
+                case WALL:
+                    drawSurface(vfx->screen, vfx->field.wall, newX, newY);
+                    break;
+                case CHEST:
+                    drawSurface(vfx->screen, vfx->field.chest, newX, newY);
+                    break;
+                case CHEST_DEST:
+                    drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
+                    break;
+            }
+        }
+
+    }
+
+    newX = topLeftX + player->x * PLAYER_WIDTH;
+    newY = topLeftY + player->y * PLAYER_HEIGHT;
+
+    drawSurface(vfx->screen, vfx->field.player, newX, newY);
+}

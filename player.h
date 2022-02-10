@@ -1,5 +1,5 @@
 //
-// Created by percival on 08.02.2022.
+// Created by Marcin Jarczewski on 08.02.2022.
 //
 #include "./SDL2-2.0.10/include/SDL.h"
 
