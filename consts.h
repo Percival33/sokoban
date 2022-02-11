@@ -17,7 +17,8 @@ enum Field {
     PLAYER,
     CHEST,
     CHEST_DEST,
-    WALL
+    WALL,
+    CHEST_AT_DEST
 };
 
 enum Dir {
@@ -36,5 +37,6 @@ const int SCREEN_HEIGHT = 480;
 const int MAX_ROW_LENGTH = 100;
 const int MAX_LEVEL_NAME_LENGTH = 100;
 const int MAX_TEXT_LENGTH = 2 * MAX_LEVEL_NAME_LENGTH;
+const float ANIMATED_FPS = 24.0f;
 
 #endif //SOKOBAN_CONSTS_H

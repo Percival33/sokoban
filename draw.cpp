@@ -1,7 +1,6 @@
 //
 // Created by Marcin Jarczewski on 08.02.2022.
 //
-
 #include "draw.h"
 #include "consts.h"
 
@@ -94,6 +93,9 @@ void drawBoard(const graphics_t *vfx, const player_t *player, const int **board,
                 case CHEST_DEST:
                     drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
                     break;
+                case CHEST_AT_DEST:
+                    drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
+                    break;
             }
         }
 
@@ -102,5 +104,5 @@ void drawBoard(const graphics_t *vfx, const player_t *player, const int **board,
     newX = topLeftX + player->x * PLAYER_WIDTH;
     newY = topLeftY + player->y * PLAYER_HEIGHT;
 
-    drawSurface(vfx->screen, vfx->field.player, newX, newY);
+    drawSurface(vfx->screen, vfx->pSprites.p, newX, newY);
 }

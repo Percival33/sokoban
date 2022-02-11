@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 #include "game.h"
 #include "draw.h"
@@ -17,6 +18,8 @@ extern "C" {
 }
 
 void terminateProgram(graphics_t *vfx) {
+//    freeAssets(); //TODO: create freeAssets func
+
     SDL_FreeSurface(vfx->charset);
     SDL_FreeSurface(vfx->screen);
     SDL_DestroyTexture(vfx->scrtex);
@@ -39,13 +42,30 @@ int loadAssets(graphics_t *vfx) {
     int err = 0;
 
     err |= loadBMP(vfx, "../assets/cs8x8.bmp", &vfx->charset);
-    err |= loadBMP(vfx, "../assets/eti.bmp", &vfx->eti);
 
-    err |= loadBMP(vfx, "../assets/player_1.bmp", &vfx->field.player);
+    err |= loadBMP(vfx, "../assets/player/pDown1.bmp", &vfx->pSprites.downMove[0]);
+    err |= loadBMP(vfx, "../assets/player/pDown2.bmp", &vfx->pSprites.downMove[1]);
+    err |= loadBMP(vfx, "../assets/player/pDown3.bmp", &vfx->pSprites.downMove[2]);
+
+    err |= loadBMP(vfx, "../assets/player/pUp1.bmp", &vfx->pSprites.upMove[0]);
+    err |= loadBMP(vfx, "../assets/player/pUp2.bmp", &vfx->pSprites.upMove[1]);
+    err |= loadBMP(vfx, "../assets/player/pUp3.bmp", &vfx->pSprites.upMove[2]);
+
+    err |= loadBMP(vfx, "../assets/player/pLeft1.bmp", &vfx->pSprites.leftMove[0]);
+    err |= loadBMP(vfx, "../assets/player/pLeft2.bmp", &vfx->pSprites.leftMove[1]);
+    err |= loadBMP(vfx, "../assets/player/pLeft3.bmp", &vfx->pSprites.leftMove[2]);
+
+    err |= loadBMP(vfx, "../assets/player/pRight1.bmp", &vfx->pSprites.rightMove[0]);
+    err |= loadBMP(vfx, "../assets/player/pRight2.bmp", &vfx->pSprites.rightMove[1]);
+    err |= loadBMP(vfx, "../assets/player/pRight3.bmp", &vfx->pSprites.rightMove[2]);
+
+
     err |= loadBMP(vfx, "../assets/crate_01.bmp", &vfx->field.chest);
     err |= loadBMP(vfx, "../assets/wall.bmp", &vfx->field.wall);
     err |= loadBMP(vfx, "../assets/chestDest.bmp", &vfx->field.chestDest);
+    // TODO: decide chestDest or crate27 ?
     err |= loadBMP(vfx, "../assets/empty.bmp", &vfx->field.empty);
+    err |= loadBMP(vfx, "../assets/crate_12.bmp", &vfx->field.chestAtDest);
 
     if(err) {
         return ERROR;
@@ -58,8 +78,7 @@ void display(var_t *game) {
     const double worldTime = game->worldTime;
     const double fps = game->fps;
     const int backgroundColor = game->colors.BLACK;
-    const graphics_t *vfx = &game->vfx;
-    const player_t *player = &game->player;
+    graphics_t *vfx = &game->vfx;
     const int **board = (const int**)game->board;
     const int moves = game->moves;
 
@@ -70,21 +89,41 @@ void display(var_t *game) {
 
     SDL_FillRect(vfx->screen, NULL, backgroundColor);
 
-    drawBoard(vfx, player, board, game->rows, game->cols);
+    if(game->player.hasMoved) {
+        //change sprite to animate player
+        float dt = (game->t1 - game->player.lastUpdate) * 0.001f;
 
-    // info text
-//    drawRectangle(vfx->screen, 4, 4, SCREEN_WIDTH - 8, 36, outlineColor, fillColor);
+        int framesToUpdate = floor(dt * ANIMATED_FPS);
+
+        if(framesToUpdate > 0) {
+            game->player.lastFrame += framesToUpdate;
+            game->player.lastFrame %= NUM_FRAMES;
+            game->player.lastUpdate = game->t1;
+        }
+        if(game->player.moveDir == UP)
+            vfx->pSprites.p = vfx->pSprites.upMove[game->player.lastFrame];
+        else if(game->player.moveDir == DOWN)
+            vfx->pSprites.p = vfx->pSprites.downMove[game->player.lastFrame];
+        else if(game->player.moveDir == LEFT)
+            vfx->pSprites.p = vfx->pSprites.leftMove[game->player.lastFrame];
+        else if(game->player.moveDir == RIGHT)
+            vfx->pSprites.p = vfx->pSprites.rightMove[game->player.lastFrame];
+
+        game->player.hasMoved = 0;
+    }
+
+
+    drawBoard(vfx, (const player_t*)&game->player, board, game->rows, game->cols);
 
     sprintf(text, "%s, elapsed time = %.1lf s  %.0lf frames / s moves: %d", levelName, worldTime, fps, moves);
     drawString(vfx->screen, vfx->screen->w / 2 - strlen(text) * 8 / 2, 10, text, vfx->charset);
-
-//    sprintf(text, "Esc - exit, n - new game, arrows - movement");
-//    drawString(vfx->screen, vfx->screen->w / 2 - strlen(text) * 8 / 2, 26, text, vfx->charset);
 
     SDL_UpdateTexture(vfx->scrtex, NULL, vfx->screen->pixels, vfx->screen->pitch);
 //		SDL_RenderClear(renderer);
     SDL_RenderCopy(vfx->renderer, vfx->scrtex, NULL, NULL);
     SDL_RenderPresent(vfx->renderer);
+
+    game->vfx = *vfx;
 }
 
 void setColors(graphics_t *vfx, colors_t *colors) {
@@ -136,6 +175,8 @@ void move(var_t *game, int dir) {
     int x = game->player.x;
     int y = game->player.y;
 
+    assert(game->player.hasMoved == 0);
+
     x += dx[dir];
     y += dy[dir];
 
@@ -156,6 +197,8 @@ void move(var_t *game, int dir) {
     if(type != WALL && type != CHEST) {
         game->player.x = x;
         game->player.y = y;
+        game->player.hasMoved = 1;
+        game->player.moveDir = dir;
         game->moves++;
     }
 
@@ -203,6 +246,8 @@ int getFieldType(char c) {
             return PLAYER;
         case 'x':
             return CHEST_DEST;
+        case 'g':
+            return CHEST_AT_DEST;
         default:
             return ERROR;
     }
@@ -220,6 +265,8 @@ char printCell(int x) {
             return 'c';
         case CHEST_DEST:
             return 'x';
+        case CHEST_AT_DEST:
+            return 'g';
         default:
             return '!';
     }
@@ -269,8 +316,6 @@ int loadLevel(var_t *game) {
     return 0;
 }
 
-
-
 void initGame(var_t *game) {
     game->t1 = SDL_GetTicks();
 
@@ -285,8 +330,14 @@ void initGame(var_t *game) {
     game->player.x = 0;
     game->player.y = 0;
 
+    game->player.hasMoved = 0;
+    game->player.lastFrame = 0;
+    game->player.lastUpdate = 0;
+
     game->player.box.w = PLAYER_WIDTH;
     game->player.box.h = PLAYER_HEIGHT;
+
+    game->vfx.pSprites.p = game->vfx.pSprites.downMove[0];
 }
 
 int gameLoop(var_t *game) {
