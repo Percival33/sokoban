@@ -21,7 +21,7 @@ typedef struct playerSprites {
 } pSprites_t;
 
 typedef struct graphics {
-    SDL_Surface *charset, *screen;
+    SDL_Surface *charset, *screen, *winScreen;
     SDL_Texture *scrtex;
     SDL_Renderer *renderer;
     SDL_Window *window;

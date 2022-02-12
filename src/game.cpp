@@ -22,23 +22,31 @@ void cleanUp(var_t *game) {
     free(game->dests.dests);
 }
 
+void freeSurface(SDL_Surface **surface) {
+    if(*surface != NULL)
+        SDL_FreeSurface(*surface);
+
+    *surface = NULL;
+}
+
 void freeAssets(graphics_t *vfx) {
+
     for(int dir = LEFT; dir <= DOWN; dir++) {
         for(int frame = 0; frame < NUM_FRAMES; frame++) {
             if(vfx->pSprites.sprites[dir][frame] == nullptr)
                 continue;
 
-            SDL_FreeSurface(vfx->pSprites.sprites[dir][frame]);
-            vfx->pSprites.sprites[dir][frame] = NULL;
+            freeSurface(&vfx->pSprites.sprites[dir][frame]);
         }
     }
 
-    SDL_FreeSurface(vfx->pSprites.p);
-    SDL_FreeSurface(vfx->field.empty);
-    SDL_FreeSurface(vfx->field.chest);
-    SDL_FreeSurface(vfx->field.chestDest);
-    SDL_FreeSurface(vfx->field.wall);
-    SDL_FreeSurface(vfx->field.chestAtDest);
+    freeSurface(&vfx->field.empty);
+    freeSurface(&vfx->field.chest);
+    freeSurface(&vfx->field.chestDest);
+    freeSurface(&vfx->field.wall);
+    freeSurface(&vfx->field.chestAtDest);
+
+    freeSurface(&vfx->winScreen);
 }
 
 void terminateProgram(var_t *game) {
@@ -91,6 +99,8 @@ int loadAssets(var_t *game, graphics_t *vfx) {
     err |= loadBMP(game, vfx, "../assets/empty.bmp", &vfx->field.empty);
     err |= loadBMP(game, vfx, "../assets/crate_12.bmp", &vfx->field.chestAtDest);
 
+    err |= loadBMP(game, vfx, "../assets/winScreen.bmp", &vfx->winScreen);
+
     if(err) {
         return ERROR;
     }
@@ -104,7 +114,7 @@ void changePlayerSprite(const player_t *player, graphics_t *vfx, const int frame
 
 void changeSprites(var_t *game) {
 
-    if(game->player.hasMoved /* || game->player.lastUpdate + DELAY < game->t1 */) {
+    if(game->player.hasMoved) {
         //change sprite to animate player
         float dt = (game->t1 - game->player.lastUpdate) * 0.001f;
 
@@ -390,15 +400,13 @@ int loadLevel(var_t *game) {
     FILE *lvl;
     int tmp;
     char line[MAX_ROW_LENGTH];
-//    char levelName[MAX_ROW_LENGTH];
 
-    lvl = fopen("../levels/level1.txt", "r");
+    lvl = fopen("../levels/level2.txt", "r");
 
     if(lvl == NULL) {
         return ERROR;
     }
-//    sprintf() // TODO: insert level name to display it on top
-    strcpy(game->levelName, "Level 1");
+    strcpy(game->levelName, "Sokoban level 2");
 
     fgets(line, MAX_ROW_LENGTH, lvl);
     tmp = sscanf(line, "%d %d", &game->board.rows, &game->board.cols);
@@ -492,24 +500,11 @@ int gameLoop(var_t *game) {
         game->t1 = game->t2;
 
         if(isWin(game)) {
-            SDL_Rect r;
-            r.x = SCREEN_WIDTH/3;
-            r.y = SCREEN_HEIGHT/3;
-            r.w = SCREEN_WIDTH/3;
-            r.h = SCREEN_HEIGHT/3;
-
-            SDL_SetRenderDrawColor(game->vfx.renderer, 0, 0, 255, 255);
-            SDL_RenderFillRect(game->vfx.renderer, &r);
-//            SDL_RenderPresent(game->vfx.renderer);
-
-            char text[MAX_TEXT_LENGTH];
-            sprintf(text, "YOU WIN!");
-            drawString(game->vfx.screen, r.x + 10, r.y + 10, text, game->vfx.charset);
+            int tmpX = (SCREEN_WIDTH - 250)/2;
+            int tmpY = (SCREEN_HEIGHT - 250)/2;
+            drawSurface(game->vfx.screen, game->vfx.winScreen, tmpX, tmpY);
             updateScreen(&game->vfx);
-//            SDL_RenderCopy(game->vfx.renderer, game->vfx.scrtex, NULL, NULL);
-//            SDL_RenderPresent(game->vfx.renderer);
 
-            int tmp = SDL_GetTicks();
             SDL_Delay(3000);
 
             return QUIT;
