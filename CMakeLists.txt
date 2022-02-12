@@ -9,7 +9,7 @@ set(SDL2_LIB_DIR ${PROJECT_SOURCE_DIR}/SDL2-2.0.10/lib/x64)
 include_directories(${SDL2_INCLUDE_DIR})
 link_directories(${SDL2_LIB_DIR})
 
-set(SOURCE_FILES main.cpp)
-add_executable(sokoban main.cpp draw.cpp draw.h consts.h game.cpp game.h graphics.h colors.h player.h board.h chest.h)
+set(SOURCE_FILES src/main.cpp)
+add_executable(sokoban src/main.cpp src/draw.cpp include/draw.h include/consts.h src/game.cpp include/game.h include/graphics.h include/colors.h include/player.h include/board.h include/chest.h)
 
 target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
