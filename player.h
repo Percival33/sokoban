@@ -10,7 +10,6 @@ const int NUM_FRAMES = 3;
 
 typedef struct player {
     int x, y, lastUpdate, lastFrame, hasMoved, moveDir;
-    SDL_Rect box;
 } player_t;
 
 #endif //SOKOBAN_PLAYER_H

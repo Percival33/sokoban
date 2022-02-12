@@ -3,6 +3,8 @@
 //
 #include "draw.h"
 #include "consts.h"
+#include "board.h"
+#include "chest.h"
 
 // draw a text txt on surface screen, starting from the point (x, y)
 // charset is a 128x128 bitmap containing character images
@@ -70,39 +72,83 @@ void drawRectangle(SDL_Surface *screen, int x, int y, int l, int k,
         drawLine(screen, x + 1, i, l - 2, 1, 0, fillColor);
 };
 
-void drawBoard(const graphics_t *vfx, const player_t *player, const int **board, int rows, int cols) {
-    int topLeftX = (SCREEN_WIDTH - cols*PLAYER_WIDTH)/2;
-    int topLeftY = (SCREEN_HEIGHT - rows*PLAYER_HEIGHT)/2;
+
+void drawChests(const graphics_t *vfx, const chests_t *chests, const int topLeftX, const int topLeftY) {
+    int newX, newY;
+
+    for(int c = 0; c < chests->chestNum; c++) {
+        newX = topLeftX + chests->chests[c].col * SPRITE_WIDTH;
+        newY = topLeftY + chests->chests[c].row * SPRITE_HEIGHT;
+
+        if(chests->chests[c].onTarget)
+            drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
+        else
+            drawSurface(vfx->screen, vfx->field.chest, newX, newY);
+    }
+}
+
+void drawDests(const graphics_t *vfx, const dests_t *dests, const int topLeftX, const int topLeftY) {
+    int newX, newY;
+
+    for(int c = 0; c < dests->destNum; c++) {
+        newX = topLeftX + dests->dests[c].col * SPRITE_WIDTH;
+        newY = topLeftY + dests->dests[c].row * SPRITE_HEIGHT;
+
+        drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
+    }
+}
+
+void drawPlayer(const graphics_t *vfx, const player_t *player, const int topLeftX, const int topLeftY, const int t1) {
+    int newX, newY;
+
+    int oppositeDir = (player->moveDir + 2) % 4;
+    int movePhaseX = (player->hasMoved ? dx[oppositeDir] * (SPRITE_WIDTH / NUM_FRAMES) : 0);
+    int movePhaseY = (player->hasMoved ? dy[oppositeDir] * (SPRITE_HEIGHT / NUM_FRAMES) : 0);
+
+    if(movePhaseX || movePhaseY) {
+        if (player->lastUpdate + NUM_FRAMES*DELAY < t1) { // if movement was animated
+            movePhaseX = movePhaseY = 0;    // dont animate more
+        }
+        movePhaseX *= player->hasMoved;
+        movePhaseY *= player->hasMoved;
+//        printf("x: %d\t y: %d\t moves: %d\n", movePhaseX, movePhaseY, player->hasMoved);
+    };
+
+    newX = topLeftX + player->x * SPRITE_WIDTH + movePhaseX;
+    newY = topLeftY + player->y * SPRITE_HEIGHT + movePhaseY;
+
+    drawSurface(vfx->screen, vfx->pSprites.p, newX, newY);
+}
+
+
+
+// function draws board and everything on it, to screen
+void drawBoard(const graphics_t *vfx, const chests_t *chests, const dests_t *dests, const player_t *player, const board_t *board, int t1) {
+    int topLeftX = (SCREEN_WIDTH - board->cols * SPRITE_WIDTH) / 2;
+    int topLeftY = (SCREEN_HEIGHT - board->rows * SPRITE_HEIGHT) / 2;
     int newX;
     int newY;
 
-    for(int row = 0; row < rows; row++) {
-        for(int col = 0; col < cols; col++) {
-            newX = topLeftX + col * PLAYER_WIDTH;
-            newY = topLeftY + row * PLAYER_HEIGHT;
+    for(int row = 0; row < board->rows; row++) {
+        for(int col = 0; col < board->cols; col++) {
+            newX = topLeftX + col * SPRITE_WIDTH;
+            newY = topLeftY + row * SPRITE_HEIGHT;
 
             drawSurface(vfx->screen, vfx->field.empty, newX, newY);
-
-            switch(board[row][col]) {
+            switch(board->grid[row][col]) {
                 case WALL:
                     drawSurface(vfx->screen, vfx->field.wall, newX, newY);
-                    break;
-                case CHEST:
-                    drawSurface(vfx->screen, vfx->field.chest, newX, newY);
                     break;
                 case CHEST_DEST:
                     drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
                     break;
-                case CHEST_AT_DEST:
-                    drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
+                default:
                     break;
             }
         }
-
     }
 
-    newX = topLeftX + player->x * PLAYER_WIDTH;
-    newY = topLeftY + player->y * PLAYER_HEIGHT;
-
-    drawSurface(vfx->screen, vfx->pSprites.p, newX, newY);
+    drawDests(vfx, dests, topLeftX, topLeftY);
+    drawChests(vfx, chests, topLeftX, topLeftY);
+    drawPlayer(vfx, player, topLeftX, topLeftY, t1);
 }

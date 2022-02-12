@@ -13,7 +13,7 @@ enum Status {
 };
 
 enum Field {
-    EMPTY = 100,
+    EMPTY = 1000,
     PLAYER,
     CHEST,
     CHEST_DEST,
@@ -36,7 +36,9 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int MAX_ROW_LENGTH = 100;
 const int MAX_LEVEL_NAME_LENGTH = 100;
-const int MAX_TEXT_LENGTH = 2 * MAX_LEVEL_NAME_LENGTH;
-const float ANIMATED_FPS = 24.0f;
+const int MAX_TEXT_LENGTH = 200;
+const float ANIMATED_FPS = 20.0f;
+
+const int DELAY = 300;
 
 #endif //SOKOBAN_CONSTS_H

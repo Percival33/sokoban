@@ -19,7 +19,7 @@ extern "C" {
 
 void terminateProgram(graphics_t *vfx) {
 //    freeAssets(); //TODO: create freeAssets func
-
+//  cleanUp() //TODO: clean chests, results
     SDL_FreeSurface(vfx->charset);
     SDL_FreeSurface(vfx->screen);
     SDL_DestroyTexture(vfx->scrtex);
@@ -43,21 +43,21 @@ int loadAssets(graphics_t *vfx) {
 
     err |= loadBMP(vfx, "../assets/cs8x8.bmp", &vfx->charset);
 
-    err |= loadBMP(vfx, "../assets/player/pDown1.bmp", &vfx->pSprites.downMove[0]);
-    err |= loadBMP(vfx, "../assets/player/pDown2.bmp", &vfx->pSprites.downMove[1]);
-    err |= loadBMP(vfx, "../assets/player/pDown3.bmp", &vfx->pSprites.downMove[2]);
+    err |= loadBMP(vfx, "../assets/player/pDown1.bmp", &vfx->pSprites.sprites[DOWN][0]);
+    err |= loadBMP(vfx, "../assets/player/pDown2.bmp", &vfx->pSprites.sprites[DOWN][1]);
+    err |= loadBMP(vfx, "../assets/player/pDown3.bmp", &vfx->pSprites.sprites[DOWN][2]);
 
-    err |= loadBMP(vfx, "../assets/player/pUp1.bmp", &vfx->pSprites.upMove[0]);
-    err |= loadBMP(vfx, "../assets/player/pUp2.bmp", &vfx->pSprites.upMove[1]);
-    err |= loadBMP(vfx, "../assets/player/pUp3.bmp", &vfx->pSprites.upMove[2]);
+    err |= loadBMP(vfx, "../assets/player/pUp1.bmp", &vfx->pSprites.sprites[UP][0]);
+    err |= loadBMP(vfx, "../assets/player/pUp2.bmp", &vfx->pSprites.sprites[UP][1]);
+    err |= loadBMP(vfx, "../assets/player/pUp3.bmp", &vfx->pSprites.sprites[UP][2]);
 
-    err |= loadBMP(vfx, "../assets/player/pLeft1.bmp", &vfx->pSprites.leftMove[0]);
-    err |= loadBMP(vfx, "../assets/player/pLeft2.bmp", &vfx->pSprites.leftMove[1]);
-    err |= loadBMP(vfx, "../assets/player/pLeft3.bmp", &vfx->pSprites.leftMove[2]);
+    err |= loadBMP(vfx, "../assets/player/pLeft1.bmp", &vfx->pSprites.sprites[LEFT][0]);
+    err |= loadBMP(vfx, "../assets/player/pLeft2.bmp", &vfx->pSprites.sprites[LEFT][1]);
+    err |= loadBMP(vfx, "../assets/player/pLeft3.bmp", &vfx->pSprites.sprites[LEFT][2]);
 
-    err |= loadBMP(vfx, "../assets/player/pRight1.bmp", &vfx->pSprites.rightMove[0]);
-    err |= loadBMP(vfx, "../assets/player/pRight2.bmp", &vfx->pSprites.rightMove[1]);
-    err |= loadBMP(vfx, "../assets/player/pRight3.bmp", &vfx->pSprites.rightMove[2]);
+    err |= loadBMP(vfx, "../assets/player/pRight1.bmp", &vfx->pSprites.sprites[RIGHT][0]);
+    err |= loadBMP(vfx, "../assets/player/pRight2.bmp", &vfx->pSprites.sprites[RIGHT][1]);
+    err |= loadBMP(vfx, "../assets/player/pRight3.bmp", &vfx->pSprites.sprites[RIGHT][2]);
 
 
     err |= loadBMP(vfx, "../assets/crate_01.bmp", &vfx->field.chest);
@@ -74,12 +74,48 @@ int loadAssets(graphics_t *vfx) {
     return SUCCESS;
 }
 
+void changePlayerSprite(const player_t *player, graphics_t *vfx, const int frame) {
+    vfx->pSprites.p = vfx->pSprites.sprites[player->moveDir][frame];
+}
+
+void changeSprites(var_t *game) {
+
+    if(game->player.hasMoved /* || game->player.lastUpdate + DELAY < game->t1 */) {
+        //change sprite to animate player
+        float dt = (game->t1 - game->player.lastUpdate) * 0.001f;
+
+        int framesToUpdate = floor(dt * ANIMATED_FPS);
+
+        if (framesToUpdate > 0) {
+            game->player.lastFrame += framesToUpdate;
+            game->player.lastFrame %= NUM_FRAMES;
+            game->player.lastUpdate = game->t1;
+            game->player.hasMoved--;
+        }
+
+        changePlayerSprite(&game->player, &game->vfx, game->player.lastFrame);
+    }
+    else {
+        changePlayerSprite(&game->player, &game->vfx, 0);
+    }
+    if (game->player.hasMoved < 0) {
+        game->player.hasMoved = 0;
+    }
+}
+
+void updateScreen(graphics_t *vfx) {
+    SDL_UpdateTexture(vfx->scrtex, NULL, vfx->screen->pixels, vfx->screen->pitch);
+//		SDL_RenderClear(renderer);
+    SDL_RenderCopy(vfx->renderer, vfx->scrtex, NULL, NULL);
+    SDL_RenderPresent(vfx->renderer);
+}
+
 void display(var_t *game) {
     const double worldTime = game->worldTime;
     const double fps = game->fps;
     const int backgroundColor = game->colors.BLACK;
     graphics_t *vfx = &game->vfx;
-    const int **board = (const int**)game->board;
+    board_t *board = &game->board;
     const int moves = game->moves;
 
     char levelName[MAX_LEVEL_NAME_LENGTH];
@@ -89,39 +125,14 @@ void display(var_t *game) {
 
     SDL_FillRect(vfx->screen, NULL, backgroundColor);
 
-    if(game->player.hasMoved) {
-        //change sprite to animate player
-        float dt = (game->t1 - game->player.lastUpdate) * 0.001f;
+    changeSprites(game);
 
-        int framesToUpdate = floor(dt * ANIMATED_FPS);
-
-        if(framesToUpdate > 0) {
-            game->player.lastFrame += framesToUpdate;
-            game->player.lastFrame %= NUM_FRAMES;
-            game->player.lastUpdate = game->t1;
-        }
-        if(game->player.moveDir == UP)
-            vfx->pSprites.p = vfx->pSprites.upMove[game->player.lastFrame];
-        else if(game->player.moveDir == DOWN)
-            vfx->pSprites.p = vfx->pSprites.downMove[game->player.lastFrame];
-        else if(game->player.moveDir == LEFT)
-            vfx->pSprites.p = vfx->pSprites.leftMove[game->player.lastFrame];
-        else if(game->player.moveDir == RIGHT)
-            vfx->pSprites.p = vfx->pSprites.rightMove[game->player.lastFrame];
-
-        game->player.hasMoved = 0;
-    }
-
-
-    drawBoard(vfx, (const player_t*)&game->player, board, game->rows, game->cols);
+    drawBoard(vfx, &game->chests, &game->dests, &game->player, board, game->t1);
 
     sprintf(text, "%s, elapsed time = %.1lf s  %.0lf frames / s moves: %d", levelName, worldTime, fps, moves);
     drawString(vfx->screen, vfx->screen->w / 2 - strlen(text) * 8 / 2, 10, text, vfx->charset);
 
-    SDL_UpdateTexture(vfx->scrtex, NULL, vfx->screen->pixels, vfx->screen->pitch);
-//		SDL_RenderClear(renderer);
-    SDL_RenderCopy(vfx->renderer, vfx->scrtex, NULL, NULL);
-    SDL_RenderPresent(vfx->renderer);
+   updateScreen(vfx);
 
     game->vfx = *vfx;
 }
@@ -175,6 +186,9 @@ void move(var_t *game, int dir) {
     int x = game->player.x;
     int y = game->player.y;
 
+    if(game->player.hasMoved)
+        return;
+
     assert(game->player.hasMoved == 0);
 
     x += dx[dir];
@@ -186,24 +200,23 @@ void move(var_t *game, int dir) {
     if(y < 0)
         y = 0;
 
-    if(x >= game->cols)
-        x = game->cols - 1;
+    if(x >= game->board.cols)
+        x = game->board.cols - 1;
 
-    if(y >= game->rows)
-        y = game->rows - 1;
+    if(y >= game->board.rows)
+        y = game->board.rows - 1;
 
-    int type = game->board[y][x];
+    int type = game->board.grid[y][x];
+    if(type == CHEST) {
 
-    if(type != WALL && type != CHEST) {
+    }
+    if(type != WALL && type != CHEST && type != CHEST_AT_DEST) {
         game->player.x = x;
         game->player.y = y;
-        game->player.hasMoved = 1;
-        game->player.moveDir = dir;
+        game->player.hasMoved = NUM_FRAMES;
         game->moves++;
     }
-
-    game->player.box.x = game->player.x;
-    game->player.box.y = game->player.y;
+    game->player.moveDir = dir;
 }
 
 void handleEvents(var_t *game) {
@@ -231,7 +244,6 @@ void handleEvents(var_t *game) {
                 break;
         };
     };
-
 }
 
 int getFieldType(char c) {
@@ -253,64 +265,111 @@ int getFieldType(char c) {
     }
 }
 
-char printCell(int x) {
-    switch(x) {
-        case WALL:
-            return '#';
-        case PLAYER:
-            return 'p';
-        case EMPTY:
-            return ' ';
-        case CHEST:
-            return 'c';
-        case CHEST_DEST:
-            return 'x';
-        case CHEST_AT_DEST:
-            return 'g';
-        default:
-            return '!';
+void initChests(var_t *game) {
+    int readChest, readDest;
+
+    assert(game->dests.destNum == game->chests.chestNum);
+
+    readChest = 0;
+    readDest = 0;
+
+    game->chests.chests = (chest_t*)malloc(game->chests.chestNum * sizeof(chest_t));
+    game->dests.dests = (point_t*)malloc(game->dests.destNum * sizeof(point_t));
+
+    for(int row = 0; row < game->board.rows; row++) {
+        for(int col = 0; col < game->board.cols; col++) {
+            switch(game->board.grid[row][col]) {
+                case CHEST:
+                    game->chests.chests[readChest].row = row;
+                    game->chests.chests[readChest].col = col;
+                    game->chests.chests[readChest].onTarget = 0;
+
+                    readChest++;
+                    break;
+                case CHEST_AT_DEST:
+                    game->chests.chests[readChest].row = row;
+                    game->chests.chests[readChest].col = col;
+                    game->chests.chests[readChest].onTarget = 1;
+
+                    game->dests.dests[readDest].row = row;
+                    game->dests.dests[readDest].col = col;
+
+                    readChest++;
+                    readDest++;
+                    break;
+                case CHEST_DEST:
+                    game->dests.dests[readDest].row = row;
+                    game->dests.dests[readDest].col = col;
+
+                    readDest++;
+                    break;
+            }
+        }
     }
+
+    assert(readChest == readDest);
+
+//    for(int i = 0; i < readChest; i++) {
+//        printf("c[%d]:\t(x,y) = (%d,%d)\n", i,game->chests[i].row, game->chests[i].col);
+//    }
+//
+//    for(int i = 0; i < readChest; i++) {
+//        printf("d[%d]:\t(x,y) = (%d,%d)\n", i,game->dests[i].row, game->dests[i].col);
+//    }
 }
 
 int loadLevel(var_t *game) {
     FILE *lvl;
+    int tmp;
+    char line[MAX_ROW_LENGTH];
+//    char levelName[MAX_ROW_LENGTH];
 
-    strcpy(game->levelName, "level");
     lvl = fopen("../levels/level.txt", "r");
 
     if(lvl == NULL) {
         return ERROR;
     }
+//    sprintf() // TODO: insert level name to display it on top
+    strcpy(game->levelName, "Level name: ");
 
-    char line[MAX_ROW_LENGTH];
     fgets(line, MAX_ROW_LENGTH, lvl);
+    tmp = sscanf(line, "%d %d", &game->board.rows, &game->board.cols);
+    assert(tmp == 2);
 
-    assert( sscanf(line, "%d %d", &game->rows, &game->cols) == 2);
+    game->board.grid = (int**)malloc(game->board.rows * sizeof(int*));
 
-    game->board = (int**)malloc(game->rows * sizeof(int*));
-    for(int row = 0; row < game->rows; row++) {
+//TODO: fix readability
+    for(int row = 0; row < game->board.rows; row++) {
 
-        game->board[row] = (int*)malloc(game->cols * sizeof(int));
+        game->board.grid[row] = (int*)malloc(game->board.cols * sizeof(int));
         fgets(line, MAX_ROW_LENGTH, lvl);
 
-        for(int col = 0; col < game->cols; col++) {
-            game->board[row][col] = getFieldType(line[col]);
+        for(int col = 0; col < game->board.cols; col++) {
+            tmp = getFieldType(line[col]);
+            assert(tmp != ERROR);
 
-            if(line[col] == 'p') {
-                game->player.x = col;
-                game->player.y = row;
+            if(tmp == CHEST || tmp == CHEST_AT_DEST) {
+                game->chests.chestNum++;
+            }
+            if(tmp == CHEST_DEST || tmp == CHEST_AT_DEST) {
+                game->dests.destNum++;
             }
 
-            assert(game->board[row][col] != ERROR);
+            game->board.grid[row][col] = tmp;
         }
     }
 
-//    for(int r = 0; r < game->rows; r++) {
-//        for(int c = 0; c < game->cols; c++) {
-//            printf("%d\t",game->board[r][c]);
-//        }
-//        printf("\n");
-//    }
+
+    initChests(game);
+
+    //get position of a player
+    fgets(line, MAX_ROW_LENGTH, lvl);
+    tmp = sscanf(line, "%d %d", &game->player.x, &game->player.y);
+
+    assert(tmp == 2);
+    assert(game->board.grid[game->player.x][game->player.y] != CHEST);
+    assert(game->board.grid[game->player.x][game->player.y] != WALL);
+    assert(game->board.grid[game->player.x][game->player.y] != CHEST_AT_DEST);
 
     fclose(lvl);
     return 0;
@@ -327,17 +386,16 @@ void initGame(var_t *game) {
     game->reset = 0;
     game->moves = 0;
 
+    game->chests.chestNum = 0;
+    game->dests.destNum = 0;
+
     game->player.x = 0;
     game->player.y = 0;
 
     game->player.hasMoved = 0;
     game->player.lastFrame = 0;
     game->player.lastUpdate = 0;
-
-    game->player.box.w = PLAYER_WIDTH;
-    game->player.box.h = PLAYER_HEIGHT;
-
-    game->vfx.pSprites.p = game->vfx.pSprites.downMove[0];
+    game->player.moveDir = DOWN;
 }
 
 int gameLoop(var_t *game) {
