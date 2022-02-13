@@ -33,4 +33,7 @@ typedef struct graphics {
 const int SPRITE_WIDTH = 64;
 const int SPRITE_HEIGHT = 64;
 
+const int WIN_SCREEN_WIDTH = 250;
+const int WIN_SCREEN_HEIGHT = 250;
+
 #endif //SOKOBAN_GRAPHICS_H

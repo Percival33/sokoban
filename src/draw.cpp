@@ -77,24 +77,13 @@ void drawChests(const graphics_t *vfx, const chests_t *chests, const int topLeft
     int newX, newY;
 
     for(int c = 0; c < chests->chestNum; c++) {
-        newX = topLeftX + chests->chests[c].col * SPRITE_WIDTH;
-        newY = topLeftY + chests->chests[c].row * SPRITE_HEIGHT;
+        newX = topLeftX + chests->chests[c].cords.col * SPRITE_WIDTH;
+        newY = topLeftY + chests->chests[c].cords.row * SPRITE_HEIGHT;
 
         if(chests->chests[c].onTarget)
             drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
         else
             drawSurface(vfx->screen, vfx->field.chest, newX, newY);
-    }
-}
-
-void drawDests(const graphics_t *vfx, const dests_t *dests, const int topLeftX, const int topLeftY) {
-    int newX, newY;
-
-    for(int c = 0; c < dests->destNum; c++) {
-        newX = topLeftX + dests->dests[c].col * SPRITE_WIDTH;
-        newY = topLeftY + dests->dests[c].row * SPRITE_HEIGHT;
-
-        drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
     }
 }
 
@@ -135,8 +124,9 @@ void drawBoard(const graphics_t *vfx, const chests_t *chests, const dests_t *des
             newY = topLeftY + row * SPRITE_HEIGHT;
 
             drawSurface(vfx->screen, vfx->field.empty, newX, newY);
+
             switch(board->grid[row][col]) {
-                case WALL:
+              case WALL:
                     drawSurface(vfx->screen, vfx->field.wall, newX, newY);
                     break;
                 case CHEST_DEST:
@@ -148,7 +138,6 @@ void drawBoard(const graphics_t *vfx, const chests_t *chests, const dests_t *des
         }
     }
 
-    drawDests(vfx, dests, topLeftX, topLeftY);
     drawChests(vfx, chests, topLeftX, topLeftY);
     drawPlayer(vfx, player, topLeftX, topLeftY, t1);
 }

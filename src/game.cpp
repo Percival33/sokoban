@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include <math.h>
 
 #include "../include/game.h"
@@ -153,7 +154,8 @@ void display(var_t *game) {
     const int moves = game->moves;
 
     char levelName[MAX_LEVEL_NAME_LENGTH];
-    strcpy(levelName, game->levelName);
+    strcat(levelName, "Sokoban: ");
+    strcat(levelName, game->levelName);
 
     char text[MAX_TEXT_LENGTH];
 
@@ -220,8 +222,8 @@ int getChestId(var_t *game, int x, int y) {
     int row, col;
 
     for(int c = 0; c < game->chests.chestNum; c++) {
-        row = game->chests.chests[c].row;
-        col = game->chests.chests[c].col;
+        row = game->chests.chests[c].cords.row;
+        col = game->chests.chests[c].cords.col;
 
         if(row == y && col == x)
             return c;
@@ -253,8 +255,8 @@ void stayOnBoard(const int rows, const int cols, int *x, int *y) {
 
 void checkChestOnTarget(var_t *game, int chestId) {
     int row, col, x, y;
-    x = game->chests.chests[chestId].col;
-    y = game->chests.chests[chestId].row;
+    x = game->chests.chests[chestId].cords.col;
+    y = game->chests.chests[chestId].cords.row;
 
     game->chests.chests[chestId].onTarget = 0;
 
@@ -294,9 +296,9 @@ void move(var_t *game, int dir) {
         if(chestId == -1){
             movePlayer(game, x, y);
         }
-        else if(chestId != -1 && nextField) {
-            game->chests.chests[chestId].row = nextY;
-            game->chests.chests[chestId].col = nextX;
+        else if(nextField) {
+            game->chests.chests[chestId].cords.row = nextY;
+            game->chests.chests[chestId].cords.col = nextX;
             checkChestOnTarget(game, chestId);
             movePlayer(game, x, y);
         }
@@ -366,15 +368,15 @@ void initChests(var_t *game) {
         for(int col = 0; col < game->board.cols; col++) {
             switch(game->board.grid[row][col]) {
                 case CHEST:
-                    game->chests.chests[readChest].row = row;
-                    game->chests.chests[readChest].col = col;
+                    game->chests.chests[readChest].cords.row = row;
+                    game->chests.chests[readChest].cords.col = col;
                     game->chests.chests[readChest].onTarget = 0;
 
                     readChest++;
                     break;
                 case CHEST_AT_DEST:
-                    game->chests.chests[readChest].row = row;
-                    game->chests.chests[readChest].col = col;
+                    game->chests.chests[readChest].cords.row = row;
+                    game->chests.chests[readChest].cords.col = col;
                     game->chests.chests[readChest].onTarget = 1;
 
                     game->dests.dests[readDest].row = row;
@@ -396,17 +398,32 @@ void initChests(var_t *game) {
     assert(readChest == readDest);
 }
 
+void getPlayerPosition(var_t *game, FILE *lvl) {
+    char line[MAX_ROW_LENGTH];
+
+    fgets(line, MAX_ROW_LENGTH, lvl);
+    int tmp = sscanf(line, "%d %d", &game->player.x, &game->player.y);
+
+    assert(tmp == 2);
+    assert(game->board.grid[game->player.x][game->player.y] != CHEST);
+    assert(game->board.grid[game->player.x][game->player.y] != WALL);
+    assert(game->board.grid[game->player.x][game->player.y] != CHEST_AT_DEST);
+}
+
 int loadLevel(var_t *game) {
     FILE *lvl;
     int tmp;
     char line[MAX_ROW_LENGTH];
 
-    lvl = fopen("../levels/level2.txt", "r");
+    char levelPath[MAX_TEXT_LENGTH] = "../levels/";
+    strcat(levelPath, game->levelName);
+    strcat(levelPath, ".txt");
+
+    lvl = fopen(levelPath, "r");
 
     if(lvl == NULL) {
         return ERROR;
     }
-    strcpy(game->levelName, "Sokoban level 2");
 
     fgets(line, MAX_ROW_LENGTH, lvl);
     tmp = sscanf(line, "%d %d", &game->board.rows, &game->board.cols);
@@ -414,7 +431,6 @@ int loadLevel(var_t *game) {
 
     game->board.grid = (int**)malloc(game->board.rows * sizeof(int*));
 
-//TODO: fix readability
     for(int row = 0; row < game->board.rows; row++) {
 
         game->board.grid[row] = (int*)malloc(game->board.cols * sizeof(int));
@@ -438,14 +454,7 @@ int loadLevel(var_t *game) {
 
     initChests(game);
 
-    //get position of a player
-    fgets(line, MAX_ROW_LENGTH, lvl);
-    tmp = sscanf(line, "%d %d", &game->player.x, &game->player.y);
-
-    assert(tmp == 2);
-    assert(game->board.grid[game->player.x][game->player.y] != CHEST);
-    assert(game->board.grid[game->player.x][game->player.y] != WALL);
-    assert(game->board.grid[game->player.x][game->player.y] != CHEST_AT_DEST);
+    getPlayerPosition(game, lvl);
 
     fclose(lvl);
     return 0;
@@ -500,8 +509,8 @@ int gameLoop(var_t *game) {
         game->t1 = game->t2;
 
         if(isWin(game)) {
-            int tmpX = (SCREEN_WIDTH - 250)/2;
-            int tmpY = (SCREEN_HEIGHT - 250)/2;
+            int tmpX = (SCREEN_WIDTH - WIN_SCREEN_WIDTH)/2;
+            int tmpY = (SCREEN_HEIGHT - WIN_SCREEN_HEIGHT)/2;
             drawSurface(game->vfx.screen, game->vfx.winScreen, tmpX, tmpY);
             updateScreen(&game->vfx);
 

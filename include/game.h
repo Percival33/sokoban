@@ -23,7 +23,7 @@ typedef struct variables {
 
     board_t board;
 
-    char levelName[MAX_LEVEL_NAME_LENGTH];
+    char levelName[MAX_LEVEL_NAME_LENGTH] = "level2";
 
     graphics_t vfx;
     colors_t colors;

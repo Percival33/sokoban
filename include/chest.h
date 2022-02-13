@@ -5,13 +5,14 @@
 #ifndef SOKOBAN_CHEST_H
 #define SOKOBAN_CHEST_H
 
-typedef struct chest {
-    int row, col, onTarget;
-}chest_t;
-
 typedef struct point {
     int row, col;
 } point_t;
+
+typedef struct chest {
+    int onTarget;
+    point_t cords;
+}chest_t;
 
 typedef struct chests {
     int chestNum;
