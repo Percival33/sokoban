@@ -4,7 +4,7 @@
 #include "../include/draw.h"
 #include "../include/consts.h"
 #include "../include/board.h"
-#include "../include/chest.h"
+
 
 // draw a text txt on surface screen, starting from the point (x, y)
 // charset is a 128x128 bitmap containing character images
@@ -73,20 +73,6 @@ void drawRectangle(SDL_Surface *screen, int x, int y, int l, int k,
 };
 
 
-void drawChests(const graphics_t *vfx, const chests_t *chests, const int topLeftX, const int topLeftY) {
-    int newX, newY;
-
-    for(int c = 0; c < chests->chestNum; c++) {
-        newX = topLeftX + chests->chests[c].cords.col * SPRITE_WIDTH;
-        newY = topLeftY + chests->chests[c].cords.row * SPRITE_HEIGHT;
-
-        if(chests->chests[c].onTarget)
-            drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
-        else
-            drawSurface(vfx->screen, vfx->field.chest, newX, newY);
-    }
-}
-
 void drawPlayer(const graphics_t *vfx, const player_t *player, const int topLeftX, const int topLeftY, const int t1) {
     int newX, newY;
 
@@ -112,7 +98,7 @@ void drawPlayer(const graphics_t *vfx, const player_t *player, const int topLeft
 
 
 // function draws board and everything on it, to screen
-void drawBoard(const graphics_t *vfx, const chests_t *chests, const dests_t *dests, const player_t *player, const board_t *board, int t1) {
+void drawBoard(const graphics_t *vfx, const player_t *player, const board_t *board, int t1) {
     int topLeftX = (SCREEN_WIDTH - board->cols * SPRITE_WIDTH) / 2;
     int topLeftY = (SCREEN_HEIGHT - board->rows * SPRITE_HEIGHT) / 2;
     int newX;
@@ -132,12 +118,18 @@ void drawBoard(const graphics_t *vfx, const chests_t *chests, const dests_t *des
                 case CHEST_DEST:
                     drawSurface(vfx->screen, vfx->field.chestDest, newX, newY);
                     break;
+                case CHEST:
+                    drawSurface(vfx->screen, vfx->field.chest, newX, newY);
+                    break;
+                case CHEST_AT_DEST:
+                    drawSurface(vfx->screen, vfx->field.chestAtDest, newX, newY);
+                    break;
                 default:
                     break;
             }
         }
     }
 
-    drawChests(vfx, chests, topLeftX, topLeftY);
+//    drawChests(vfx, chests, topLeftX, topLeftY);
     drawPlayer(vfx, player, topLeftX, topLeftY, t1);
 }

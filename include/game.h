@@ -6,7 +6,6 @@
 #include "player.h"
 #include "colors.h"
 #include "graphics.h"
-#include "chest.h"
 
 #ifndef SOKOBAN_GAME_H
 #define SOKOBAN_GAME_H
@@ -18,19 +17,15 @@ typedef struct result {
 } result_t;
 
 typedef struct variables {
-    Uint32 t1, t2, quit, frames, reset, moves;
+    Uint32 t1, t2, quit, frames, reset, moves, chestNum;
     double delta, worldTime, fpsTimer, fps;
 
     board_t board;
-
-    char levelName[MAX_LEVEL_NAME_LENGTH] = "level2";
 
     graphics_t vfx;
     colors_t colors;
     player_t player;
 
-    chests_t chests;
-    dests_t dests;
 } var_t;
 
 int startProgram();

@@ -18,10 +18,7 @@ extern "C" {
 #include"SDL_main.h"
 }
 
-void cleanUp(var_t *game) {
-    free(game->chests.chests);
-    free(game->dests.dests);
-}
+const char LEVEL_NAME[] = "level2";
 
 void freeSurface(SDL_Surface **surface) {
     if(*surface != NULL)
@@ -52,7 +49,6 @@ void freeAssets(graphics_t *vfx) {
 
 void terminateProgram(var_t *game) {
     freeAssets(&game->vfx);
-    cleanUp(game);
 
     SDL_FreeSurface(game->vfx.charset);
     SDL_FreeSurface(game->vfx.screen);
@@ -155,7 +151,7 @@ void display(var_t *game) {
 
     char levelName[MAX_LEVEL_NAME_LENGTH];
     strcat(levelName, "Sokoban: ");
-    strcat(levelName, game->levelName);
+    strcat(levelName, LEVEL_NAME);
 
     char text[MAX_TEXT_LENGTH];
 
@@ -163,7 +159,7 @@ void display(var_t *game) {
 
     changeSprites(game);
 
-    drawBoard(vfx, &game->chests, &game->dests, &game->player, board, game->t1);
+    drawBoard(vfx, &game->player, board, game->t1);
 
     sprintf(text, "%s, elapsed time = %.1lf s  %.0lf frames / s moves: %d", levelName, worldTime, fps, moves);
     drawString(vfx->screen, vfx->screen->w / 2 - strlen(text) * 8 / 2, 10, text, vfx->charset);
@@ -218,27 +214,6 @@ int initProgram(var_t *game, graphics_t *vfx) {
     return SUCCESS;
 }
 
-int getChestId(var_t *game, int x, int y) {
-    int row, col;
-
-    for(int c = 0; c < game->chests.chestNum; c++) {
-        row = game->chests.chests[c].cords.row;
-        col = game->chests.chests[c].cords.col;
-
-        if(row == y && col == x)
-            return c;
-    }
-
-    return -1;
-}
-
-void movePlayer(var_t *game, int x, int y) {
-    game->player.x = x;
-    game->player.y = y;
-    game->player.hasMoved = NUM_FRAMES;
-    game->moves++;
-}
-
 void stayOnBoard(const int rows, const int cols, int *x, int *y) {
     if(*x < 0)
         *x = 0;
@@ -253,25 +228,39 @@ void stayOnBoard(const int rows, const int cols, int *x, int *y) {
         *y = rows - 1;
 }
 
-void checkChestOnTarget(var_t *game, int chestId) {
-    int row, col, x, y;
-    x = game->chests.chests[chestId].cords.col;
-    y = game->chests.chests[chestId].cords.row;
+bool fieldExist(var_t *game, int x, int y) {
+    return (0 <= y < game->board.rows) && (0 <= x < game->board.cols);
+}
 
-    game->chests.chests[chestId].onTarget = 0;
+bool isChestOnField(var_t *game, int x, int y) {
+    if(!fieldExist(game, x, y))
+        return false;
 
-    for(int d = 0; d < game->dests.destNum; d++) {
-        row = game->dests.dests[d].row;
-        col = game->dests.dests[d].col;
-        if(row == y && col == x) {
-            game->chests.chests[chestId].onTarget = 1;
-        }
+    int type = game->board.grid[y][x];
+    return (type == CHEST || type == CHEST_AT_DEST);
+
+}
+
+void movePlayer(var_t *game, int x, int y) {
+    game->player.x = x;
+    game->player.y = y;
+    game->player.hasMoved = NUM_FRAMES;
+    game->moves++;
+}
+
+
+void changeNextFieldSprite(var_t *game, int nextX, int nextY) {
+    if(game->board.grid[nextY][nextX] == CHEST_DEST) {
+        game->board.grid[nextY][nextX] = CHEST_AT_DEST;
+    }
+    else {
+        game->board.grid[nextY][nextX] = CHEST;
     }
 }
 
 void move(var_t *game, int dir) {
-    int x, y, nextX, nextY, chestId;
-    bool isWall, isNextWall, nextField;
+    int x, y, nextX, nextY;
+    bool isChest, isWall, isNextWall, isNextFieldFree;
 
     if(game->player.hasMoved)
         return;
@@ -281,25 +270,30 @@ void move(var_t *game, int dir) {
     stayOnBoard(game->board.rows, game->board.cols, &x,&y);
 
     isWall = (game->board.grid[y][x] == WALL);
-    chestId = getChestId(game,x,y);
+    isChest = isChestOnField(game, x, y);
 
     nextX = x + dx[dir];
     nextY = y + dy[dir];
-    nextField = (getChestId(game, nextX, nextY) == -1);
+    isNextFieldFree = (!isChestOnField(game, nextX, nextY) );
 
     stayOnBoard(game->board.rows, game->board.cols, &nextX, &nextY);
     isNextWall = (game->board.grid[nextY][nextX] == WALL);
 
-    nextField &= !isNextWall;
+    isNextFieldFree &= !isNextWall;
 
     if(!isWall) {
-        if(chestId == -1){
+        if(!isChest){
             movePlayer(game, x, y);
         }
-        else if(nextField) {
-            game->chests.chests[chestId].cords.row = nextY;
-            game->chests.chests[chestId].cords.col = nextX;
-            checkChestOnTarget(game, chestId);
+        else if(isNextFieldFree) { // isChest = 1
+            if(game->board.grid[y][x] == CHEST_AT_DEST) {
+                game->board.grid[y][x] = CHEST_DEST;
+                changeNextFieldSprite(game, nextX, nextY);
+            }
+            else {
+                changeNextFieldSprite(game, nextX, nextY);
+                game->board.grid[y][x] = EMPTY;
+            }
             movePlayer(game, x, y);
         }
     }
@@ -353,50 +347,6 @@ int getFieldType(char c) {
     }
 }
 
-void initChests(var_t *game) {
-    int readChest, readDest;
-
-    assert(game->dests.destNum == game->chests.chestNum);
-
-    readChest = 0;
-    readDest = 0;
-
-    game->chests.chests = (chest_t*)malloc(game->chests.chestNum * sizeof(chest_t));
-    game->dests.dests = (point_t*)malloc(game->dests.destNum * sizeof(point_t));
-
-    for(int row = 0; row < game->board.rows; row++) {
-        for(int col = 0; col < game->board.cols; col++) {
-            switch(game->board.grid[row][col]) {
-                case CHEST:
-                    game->chests.chests[readChest].cords.row = row;
-                    game->chests.chests[readChest].cords.col = col;
-                    game->chests.chests[readChest].onTarget = 0;
-
-                    readChest++;
-                    break;
-                case CHEST_AT_DEST:
-                    game->chests.chests[readChest].cords.row = row;
-                    game->chests.chests[readChest].cords.col = col;
-                    game->chests.chests[readChest].onTarget = 1;
-
-                    game->dests.dests[readDest].row = row;
-                    game->dests.dests[readDest].col = col;
-
-                    readChest++;
-                    readDest++;
-                    break;
-                case CHEST_DEST:
-                    game->dests.dests[readDest].row = row;
-                    game->dests.dests[readDest].col = col;
-
-                    readDest++;
-                    break;
-            }
-        }
-    }
-
-    assert(readChest == readDest);
-}
 
 void getPlayerPosition(var_t *game, FILE *lvl) {
     char line[MAX_ROW_LENGTH];
@@ -410,13 +360,14 @@ void getPlayerPosition(var_t *game, FILE *lvl) {
     assert(game->board.grid[game->player.x][game->player.y] != CHEST_AT_DEST);
 }
 
+
 int loadLevel(var_t *game) {
     FILE *lvl;
     int tmp;
     char line[MAX_ROW_LENGTH];
 
     char levelPath[MAX_TEXT_LENGTH] = "../levels/";
-    strcat(levelPath, game->levelName);
+    strcat(levelPath, LEVEL_NAME);
     strcat(levelPath, ".txt");
 
     lvl = fopen(levelPath, "r");
@@ -441,18 +392,18 @@ int loadLevel(var_t *game) {
             assert(tmp != ERROR);
 
             if(tmp == CHEST || tmp == CHEST_AT_DEST) {
-                game->chests.chestNum++;
+                game->chestNum++;
             }
-            if(tmp == CHEST_DEST || tmp == CHEST_AT_DEST) {
-                game->dests.destNum++;
-            }
+//            if(tmp == CHEST_DEST || tmp == CHEST_AT_DEST) {
+//                game->dests.destNum++;
+//            }
 
             game->board.grid[row][col] = tmp;
         }
     }
 
 
-    initChests(game);
+//    initChests(game);
 
     getPlayerPosition(game, lvl);
 
@@ -471,8 +422,7 @@ void initGame(var_t *game) {
     game->reset = 0;
     game->moves = 0;
 
-    game->chests.chestNum = 0;
-    game->dests.destNum = 0;
+    game->chestNum = 0;
 
     game->player.x = 0;
     game->player.y = 0;
@@ -484,11 +434,13 @@ void initGame(var_t *game) {
 }
 
 bool isWin(var_t *game) {
-    bool win = true;
-    for(int c = 0; c < game->chests.chestNum; c++) {
-        win &= game->chests.chests[c].onTarget;
+    int chestsAtDest = 0;
+    for(int row = 0; row < game->board.rows; row++) {
+        for(int col = 0; col < game->board.cols; col++) {
+            chestsAtDest += (game->board.grid[row][col] == CHEST_AT_DEST);
+        }
     }
-    return win;
+    return (chestsAtDest == game->chestNum);
 }
 
 int gameLoop(var_t *game) {
