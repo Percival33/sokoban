@@ -129,14 +129,10 @@ void changeSprites(var_t *game) {
     else {
         changePlayerSprite(&game->player, &game->vfx, 0);
     }
-    if (game->player.hasMoved < 0) {
-        game->player.hasMoved = 0;
-    }
 }
 
 void updateScreen(graphics_t *vfx) {
     SDL_UpdateTexture(vfx->scrtex, NULL, vfx->screen->pixels, vfx->screen->pitch);
-//		SDL_RenderClear(vfx->renderer);
     SDL_RenderCopy(vfx->renderer, vfx->scrtex, NULL, NULL);
     SDL_RenderPresent(vfx->renderer);
 }
@@ -171,7 +167,6 @@ void display(var_t *game) {
 
 void setColors(graphics_t *vfx, colors_t *colors) {
     colors->BLACK = SDL_MapRGB(vfx->screen->format, 0x00, 0x00, 0x00);
-//    colors->GREEN = SDL_MapRGB(vfx->screen->format, 0x00, 0xFF, 0x00);
     colors->RED = SDL_MapRGB(vfx->screen->format, 0xFF, 0x00, 0x00);
     colors->BLUE = SDL_MapRGB(vfx->screen->format, 0x11, 0x11, 0xCC);
 }
@@ -182,7 +177,6 @@ int initProgram(var_t *game, graphics_t *vfx) {
         return ERROR;
     }
 
-//	rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP, &window, &renderer);
     int rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0,
                                          &vfx->window, &vfx->renderer);
     if(rc != 0) {
@@ -229,7 +223,7 @@ void stayOnBoard(const int rows, const int cols, int *x, int *y) {
 }
 
 bool fieldExist(var_t *game, int x, int y) {
-    return (0 <= y < game->board.rows) && (0 <= x < game->board.cols);
+    return (0 <= y && y < game->board.rows) & (0 <= x && x < game->board.cols);
 }
 
 bool isChestOnField(var_t *game, int x, int y) {
@@ -249,7 +243,7 @@ void movePlayer(var_t *game, int x, int y) {
 }
 
 
-void changeNextFieldSprite(var_t *game, int nextX, int nextY) {
+void changeFieldSprite(var_t *game, int nextX, int nextY) {
     if(game->board.grid[nextY][nextX] == CHEST_DEST) {
         game->board.grid[nextY][nextX] = CHEST_AT_DEST;
     }
@@ -285,13 +279,13 @@ void move(var_t *game, int dir) {
         if(!isChest){
             movePlayer(game, x, y);
         }
-        else if(isNextFieldFree) { // isChest = 1
+        else if(isNextFieldFree) {
             if(game->board.grid[y][x] == CHEST_AT_DEST) {
                 game->board.grid[y][x] = CHEST_DEST;
-                changeNextFieldSprite(game, nextX, nextY);
+                changeFieldSprite(game, nextX, nextY);
             }
             else {
-                changeNextFieldSprite(game, nextX, nextY);
+                changeFieldSprite(game, nextX, nextY);
                 game->board.grid[y][x] = EMPTY;
             }
             movePlayer(game, x, y);

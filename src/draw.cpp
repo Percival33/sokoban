@@ -76,7 +76,7 @@ void drawRectangle(SDL_Surface *screen, int x, int y, int l, int k,
 void drawPlayer(const graphics_t *vfx, const player_t *player, const int topLeftX, const int topLeftY, const int t1) {
     int newX, newY;
 
-    int oppositeDir = (player->moveDir + 2) % 4;
+    int oppositeDir = (player->moveDir + 2) % 4;    // reverse dir
     int movePhaseX = (player->hasMoved ? dx[oppositeDir] * (SPRITE_WIDTH / NUM_FRAMES) : 0);
     int movePhaseY = (player->hasMoved ? dy[oppositeDir] * (SPRITE_HEIGHT / NUM_FRAMES) : 0);
 
@@ -130,6 +130,5 @@ void drawBoard(const graphics_t *vfx, const player_t *player, const board_t *boa
         }
     }
 
-//    drawChests(vfx, chests, topLeftX, topLeftY);
     drawPlayer(vfx, player, topLeftX, topLeftY, t1);
 }
