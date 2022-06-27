@@ -119,7 +119,7 @@ After moving all crates to final positions, final screen is showing up and game 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Level customization
-To create your own level, create `your_level_name.txt` file.
+To create your own level, create `your_level_name.txt` file. See [level1.txt](levels/level1.txt) as reference.
 Structure of file:
 ```
 n m
