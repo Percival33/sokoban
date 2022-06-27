@@ -153,7 +153,7 @@ where:
 ## Roadmap
 - [x] Add images
 - [x] about project section
-- [ ] Add level customization
+- [x] Add level customization
 - [x] finish installation section
 - [x] Update Usage section
 
