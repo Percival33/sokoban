@@ -32,7 +32,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!-- sreenshot -->
 
 There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
 
@@ -76,7 +76,7 @@ This is an example of how to list things you need to use the software and how to
 2. Download and setup [cmake](https://cmake.org/download/)
 3. Clone the repo & change directory
    ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+   git clone https://github.com/Percival33/sokoban.git
    cd sokoban
    ```
 4. Create `build` directory
@@ -116,7 +116,7 @@ Use this space to show useful examples of how a project can be used. Additional 
 - [ ] finish installation section
 - [ ] Update Usage section
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/Percival33/sokoban/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -154,6 +154,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
 * [Assets author - Kenny](https://www.kenney.nl)
+* [readme template](https://github.com/othneildrew/Best-README-Template)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
