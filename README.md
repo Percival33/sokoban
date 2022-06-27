@@ -102,7 +102,7 @@ This is an example of how to list things you need to use the software and how to
 
 To start game, run the program. Then use arrow keys to move around board. To push crate you need to move player onto crate's position.
 
-After moving all crates to final positions, game freezes for 3 seconds and final screen is showing up.
+After moving all crates to final positions, final screen is showing up and game freezes for 3 seconds.
 
 ### Keyboard shortcuts:
 * `ESC` to end game
@@ -112,6 +112,7 @@ After moving all crates to final positions, game freezes for 3 seconds and final
 
 ![starting-position-screenshot!](images/start_position.png "New game")
 ![last-postion-screenshot!](images/last_chest.png "Last chest")
+![final-screenshot!](images/final.png "winning screen")
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
