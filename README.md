@@ -111,6 +111,10 @@ To start game, run the program. Then use arrow keys to move around board. To pus
 
 After moving all crates to final positions, final screen is showing up and game freezes for 3 seconds.
 
+To play on different level replace name of your level on line **21** of **src/game.cpp**. See this [link](https://github.com/Percival33/sokoban/blob/6f37e4799461fe58ff5209c991d976a23e4bdef1/src/game.cpp#L21)
+```cpp
+const char LEVEL_NAME[] = "level2";
+```
 ### Keyboard shortcuts:
 * `ESC` to end game
 * `n` to restart game
@@ -135,7 +139,6 @@ where:
   '#' - wall
 * `x` - x postion of player, number 1 <= x <= m
 * `y` - y position of player, number 1 <= y <= n
-
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
