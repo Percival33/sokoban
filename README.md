@@ -1,6 +1,6 @@
 <div id="top"></div>
 
-# Sokoban game
+# Sokoban game :video_game:
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -102,6 +102,8 @@ This is an example of how to list things you need to use the software and how to
 
 To start game, run the program. Then use arrow keys to move around board. To push crate you need to move player onto crate's position.
 
+After moving all crates to final positions, game freezes for 3 seconds and final screen is showing up.
+
 ### Keyboard shortcuts:
 * `ESC` to end game
 * `n` to restart game
@@ -119,10 +121,9 @@ To start game, run the program. Then use arrow keys to move around board. To pus
 ## Roadmap
 - [x] Add images
 - [x] about project section
-- [ ] Add Changelog
-- [ ] Add logo
-- [ ] finish installation section
-- [ ] Update Usage section
+- [ ] Add level customization
+- [x] finish installation section
+- [x] Update Usage section
 
 See the [open issues](https://github.com/Percival33/sokoban/issues) for a full list of proposed features (and known issues).
 
