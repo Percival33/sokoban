@@ -20,7 +20,14 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#how-to-play">How to play?</a></li>
+        <li><a href="#level-customization">Level customization</a></li>
+        <li><a href="#game-screenshots">Game screenshots</a></li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -99,7 +106,7 @@ This is an example of how to list things you need to use the software and how to
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-
+### How to play?
 To start game, run the program. Then use arrow keys to move around board. To push crate you need to move player onto crate's position.
 
 After moving all crates to final positions, final screen is showing up and game freezes for 3 seconds.
@@ -109,6 +116,30 @@ After moving all crates to final positions, final screen is showing up and game 
 * `n` to restart game
 * `arrow keys` to move around
 
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### Level customization
+To create your own level, create `your_level_name.txt` file.
+Structure of file:
+```
+n m
+BOARD
+x y
+```
+where:
+* `n`- number of rows
+* `m` - number of columns
+* `BOARD`:
+  'x' - crate destination position
+  'c' - crate position
+  '#' - wall
+* `x` - x postion of player, number 1 <= x <= m
+* `y` - y position of player, number 1 <= y <= n
+
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### Game screenshots
 
 ![starting-position-screenshot!](images/start_position.png "New game")
 ![last-postion-screenshot!](images/last_chest.png "Last chest")
