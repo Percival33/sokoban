@@ -34,16 +34,16 @@
 
 <!-- screenshot -->
 
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
+<!-- There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
 
 Here's why:
 * Your time should be focused on creating something amazing. A project that solves a problem and helps others
 * You shouldn't be doing the same tasks over and over like creating a README from scratch
 * You should implement DRY principles to the rest of your life :smile:
 
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
+Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template! -->
 
-Use the `BLANK_README.md` to get started.
+TODO
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -72,24 +72,25 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-1. Download and compile [SDL](https://www.libsdl.org/download-2.0.php)
+1. Download and compile [SDL](https://www.libsdl.org/download-2.0.php).
 2. Download and setup [cmake](https://cmake.org/download/)
 3. Clone the repo & change directory
    ```sh
    git clone https://github.com/Percival33/sokoban.git
    cd sokoban
    ```
-4. Create `build` directory
+4. Move SDL folder to sokoban directory & rename it to `SDL2`
+5. Create `build` directory
    ```sh
    mkdir build
    cd build
    ```
 6. Run cmake to compile project
    ```sh
-   cmake ../sokoban
+   cmake ../.
    cmake --build .
    ```
-4. Start game
+7. Start game
    ```sh
    ./sokoban
    ```
@@ -104,13 +105,17 @@ This is an example of how to list things you need to use the software and how to
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 
+![starting-position-screenshot!](images/start_position.png "New game")
+![last-postion-screenshot!](images/last_chest.png "Last chest")
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
 
 <!-- ROADMAP -->
 ## Roadmap
-- [ ] Add images
+- [x] Add images
+- [ ] about project section
 - [ ] Add Changelog
 - [ ] Add logo
 - [ ] finish installation section
@@ -162,4 +167,5 @@ Use this space to list resources you find helpful and would like to give credit 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[product-screenshot]: images/screenshot.png
+[starting-position-screenshot]: images/start_position.png
+[last-postion-screenshot]: images/last_chest.png
