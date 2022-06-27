@@ -155,9 +155,9 @@ where:
 <!-- ROADMAP -->
 ## Roadmap
 - [x] Add images
-- [x] about project section
+- [x] About project section
 - [x] Add level customization
-- [x] finish installation section
+- [x] Finish installation section
 - [x] Update Usage section
 
 See the [open issues](https://github.com/Percival33/sokoban/issues) for a full list of proposed features (and known issues).
